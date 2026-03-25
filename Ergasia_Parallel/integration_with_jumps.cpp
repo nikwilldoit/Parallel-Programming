@@ -13,11 +13,9 @@ struct manyparams {
     long N;
 };
 
-//global shared sum
 double global_sum = 0.0;
 pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-//h f(x) pou oloklirwnw
 double f(double x) {
     return x * x;
 }
@@ -31,30 +29,19 @@ void* threadfunc(void* arg) {
     double h = data->h;
     long N = data->N;
 
-    long tables= N / thread_count; //to upodiastima pou tha douleuei kathe thread
+    long tables= N / thread_count;
 
-    long start = threadid * tables; //h prwth epanalipsi i pou tha doulevei to thread (0,tables,2*tables,ktlp)
+    long start = threadid * tables;
     
-    long end;
-    //to teleutaio thread tha douleuei mexri to N
-    if(threadid == thread_count - 1) {
-        end=N;
-    }
-    else { //ta alla mexri to start+tables
-
-        
-        end = start + tables;
-    }
 
     double local_sum = 0.0;
 
-    for (long i = start; i < end; i++) {
+    for (long i = threadid; i < N; i+= thread_count) {
         double x1 = a + i * h;
         double x2 = a + (i + 1) * h;
         local_sum += (f(x1) + f(x2)) * h / 2.0;
     }
 
-    //prosthetw to local_sum sto global_sum me mutex
     pthread_mutex_lock(&sum_mutex);
     global_sum += local_sum;
     pthread_mutex_unlock(&sum_mutex);
@@ -64,46 +51,41 @@ void* threadfunc(void* arg) {
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        return 1;
+        return 404;
     }
 
-    long N = stol(argv[1]); //plithos trapeziwn
-
-    int thread_count =stoi(argv[2]); //plithos thread
+    long N = stol(argv[1]);
+    int thread_count = stoi(argv[2]);
 
     double a = 0.0, b = 10.0;
     double h = (b - a) / N;
 
-    //pinakas me threads gia join sthn sunexeia
     pthread_t* threads= new pthread_t[thread_count];
-    //pinakas apo manyparams gia ta dedomena se kathe thread
     manyparams* thread_data = new manyparams[thread_count];
 
     global_sum = 0.0;
 
     auto start_time = chrono::high_resolution_clock::now();
 
-    //dhmiourgia kai gemisma thread
-    for (int t = 0; t < thread_count; t++) {
-        thread_data[t].threadid = t;
-        thread_data[t].thread_count = thread_count;
-        thread_data[t].a = a;
-        thread_data[t].h = h;
-        thread_data[t].N = N;
+    for (int i = 0; i < thread_count; i++) {
+        thread_data[i].threadid = i;
+        thread_data[i].thread_count = thread_count;
+        thread_data[i].a = a;
+        thread_data[i].h = h;
+        thread_data[i].N = N;
 
-        pthread_create(&threads[t], NULL, threadfunc, &thread_data[t]);
+        pthread_create(&threads[i], NULL, threadfunc, &thread_data[i]);
     }
 
-    //anamonh gia teleiwma twn thread
-    for (int t = 0; t < thread_count; ++t) {
+    for (int t = 0; t < thread_count; t++) {
         pthread_join(threads[t], NULL);
     }
 
     auto end_time = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end_time - start_time;
 
-    cout << "Integral from " << a << " to " << b << " = " << global_sum << '\n';
-    cout << "Execution time: " << elapsed.count() << " seconds with " << thread_count << " threads\n";
+    cout << "Integral from " << a << " to " << b << " = " << global_sum << endl;
+    cout << "Execution time: " << elapsed.count() << " seconds" << endl;
 
     delete[] threads;
     delete[] thread_data;

@@ -6,7 +6,7 @@
 using namespace std;
 
 
-struct Thread {
+struct manyparams {
     int threadid;
     int thread_count;
     double a;
@@ -19,8 +19,8 @@ double f(double x) {
     return x * x;
 }
 
-void* integrate_range(void* arg) {
-    Thread* data=(Thread*)arg;
+void* thrfunc(void* arg) {
+    manyparams* data=(manyparams*)arg;
 
     int threadid = data->threadid;
     int thread_count = data->thread_count;
@@ -66,30 +66,30 @@ int main(int argc, char* argv[]) {
     double h = (b - a) / N;
 
     pthread_t* threads = new pthread_t[thread_count];
-    Thread* tdata = new Thread[thread_count];
+    manyparams* tdata = new manyparams[thread_count];
     double* local_sums = new double[thread_count];
 
     auto start_time = chrono::high_resolution_clock::now();
 
-    for (int t = 0; t < thread_count; t++) {
-        tdata[t].threadid = t;
-        tdata[t].thread_count = thread_count;
-        tdata[t].a = a;
-        tdata[t].h = h;
-        tdata[t].N = N;
-        tdata[t].local_sums = local_sums;
+    for (int i = 0; i < thread_count; i++) {
+        tdata[i].threadid = i;
+        tdata[i].thread_count = thread_count;
+        tdata[i].a = a;
+        tdata[i].h = h;
+        tdata[i].N = N;
+        tdata[i].local_sums = local_sums;
 
-        pthread_create(&threads[t], NULL, integrate_range, &tdata[t]);
+        pthread_create(&threads[i], NULL, thrfunc, &tdata[i]);
     }
 
-    for (int t = 0; t < thread_count; ++t) {
-        pthread_join(threads[t], NULL);
+    for (int i = 0; i < thread_count; i++) {
+        pthread_join(threads[i], NULL);
     }
 
     //sum apo ta apotelesmata twn threads
     double global_sum = 0.0;
-    for (int t = 0; t < thread_count; ++t) {
-        global_sum += local_sums[t];
+    for (int i = 0; i < thread_count; i++) {
+        global_sum += local_sums[i];
     }
 
     auto end_time = chrono::high_resolution_clock::now();
