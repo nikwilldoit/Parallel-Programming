@@ -57,6 +57,7 @@ void* threadfunc(void* arg) {
     //prosthetw to local_sum sto global_sum me mutex
     pthread_mutex_lock(&sum_mutex);
     global_sum += local_sum;
+    cout << "Partial integral so far = " << global_sum << '\n'; //ektupwsh ana oloklhrwsh
     pthread_mutex_unlock(&sum_mutex);
 
     return NULL;

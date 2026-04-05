@@ -27,12 +27,7 @@ void* threadfunc(void* arg) {
     int thread_count =data->thread_count;
     double a = data->a;
     double h = data->h;
-    long N = data->N;
-
-    long tables= N / thread_count;
-
-    long start = threadid * tables;
-    
+    long N = data->N;    
 
     double local_sum = 0.0;
 
