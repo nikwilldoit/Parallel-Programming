@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     double a = 0.0, b = 10.0;
     double h = (b - a) / N;
 
-    //upologismos plithous task
+    //upologismos plithous task ⌈N/K⌉
     NTASK = (int)((N + K - 1) / K);
     taskid = 0;
     global_sum = 0.0;
