@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 threads = [1, 2, 4, 6]
-mean_times = [0.45376125, 0.19777325, 0.11030275, 0.093134525]
+mean_times = [0.39679196, 0.19769661, 0.10887460, 0.09161740]
 
 plt.figure(figsize=(6, 4))
 plt.plot(threads, mean_times, marker='o')

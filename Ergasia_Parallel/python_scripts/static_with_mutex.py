@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 threads = [1, 2, 4, 6]
-mean_times_mutex = [0.388435, 0.197482, 0.119154, 0.088419]
+mean_times_mutex = [0.393170, 0.197492, 0.122266, 0.094661]
 
 plt.figure(figsize=(6, 4))
 plt.plot(threads, mean_times_mutex, marker='o')

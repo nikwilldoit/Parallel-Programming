@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 threads = [1, 2, 4, 6]
-mean_times_jumps = [0.390083, 0.219739, 0.127647, 0.088956]
+mean_times_jumps = [0.3898718, 0.2169086, 0.1265182, 0.0873636]
 
 plt.figure(figsize=(6, 4))
 plt.plot(threads, mean_times_jumps, marker='o')
