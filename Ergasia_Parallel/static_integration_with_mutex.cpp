@@ -5,10 +5,11 @@
 
 using namespace std;
 
+//struct holding all parameters each thread needs
 struct manyparams {
     int threadid;
     int thread_count;
-    double a;
+    double a; //start of integration interval
     double h;
     long N;
 };
@@ -17,7 +18,7 @@ struct manyparams {
 double global_sum = 0.0;
 pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-//h f(x) pou oloklirwnw
+//f(x) to be integrated
 double f(double x) {
     return x * x;
 }
@@ -31,16 +32,16 @@ void* threadfunc(void* arg) {
     double h = data->h;
     long N = data->N;
 
-    long tables= N / thread_count; //to upodiastima pou tha douleuei kathe thread
+    long tables= N / thread_count; //the period assigned to each thread
 
-    long start = threadid * tables; //h prwth epanalipsi i pou tha doulevei to thread (0,tables,2*tables,ktlp)
+    long start = threadid * tables; //the first repitition i that the thread is going to work (0,tables,2*tables,ktlp)
     
     long end;
-    //to teleutaio thread tha douleuei mexri to N
+    //the last thread takes everything until N
     if(threadid == thread_count - 1) {
         end=N;
     }
-    else { //ta alla mexri to start+tables
+    else { //all other threads start+tables
 
         
         end = start + tables;
@@ -54,10 +55,10 @@ void* threadfunc(void* arg) {
         local_sum += (f(x1) + f(x2)) * h / 2.0;
     }
 
-    //prosthetw to local_sum sto global_sum me mutex
+    //add this threads local_sum to the global_sum
     pthread_mutex_lock(&sum_mutex);
     global_sum += local_sum;
-    cout << "Partial integral so far = " << global_sum << '\n'; //ektupwsh ana oloklhrwsh
+    cout << "Partial integral so far = " << global_sum << '\n'; //progressive printing of the integral
     pthread_mutex_unlock(&sum_mutex);
 
     return NULL;
@@ -68,23 +69,23 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    long N = stol(argv[1]); //plithos trapeziwn
+    long N = stol(argv[1]); //number of trapezoids
 
-    int thread_count =stoi(argv[2]); //plithos thread
+    int thread_count =stoi(argv[2]); //number of threads
 
     double a = 0.0, b = 10.0;
     double h = (b - a) / N;
 
-    //pinakas me threads gia join sthn sunexeia
+    //array of threads
     pthread_t* threads= new pthread_t[thread_count];
-    //pinakas apo manyparams gia ta dedomena se kathe thread
+    //array of parameter structs one per thread
     manyparams* thread_data = new manyparams[thread_count];
 
     global_sum = 0.0;
 
     auto start_time = chrono::high_resolution_clock::now();
 
-    //dhmiourgia kai gemisma thread
+    //create and launch all threads
     for (int t = 0; t < thread_count; t++) {
         thread_data[t].threadid = t;
         thread_data[t].thread_count = thread_count;
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
         pthread_create(&threads[t], NULL, threadfunc, &thread_data[t]);
     }
 
-    //anamonh gia teleiwma twn thread
+    //wait for all threads to finish
     for (int t = 0; t < thread_count; ++t) {
         pthread_join(threads[t], NULL);
     }

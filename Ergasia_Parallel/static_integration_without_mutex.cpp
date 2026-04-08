@@ -5,14 +5,14 @@
 
 using namespace std;
 
-
+//struct holding all parameters each thread needs
 struct manyparams {
     int threadid;
     int thread_count;
-    double a;
+    double a; //start of integration interval
     double h;
     long N;
-    double* local_sums;   //pinakas pou grafei gia kathe thread
+    double* local_sums;   //array that holds local_sum for every thread 
 };
 
 double f(double x) {
@@ -29,16 +29,20 @@ void* thrfunc(void* arg) {
     long N = data->N;
     double* local_sums = data->local_sums;
 
+    //base number of trapezoids assigned to each thread
     long base  = N / thread_count;
 
+    //starting index of the current thread
     long start = threadid * base;
     
+    //the last thread handles any remainder
     long end;
     if(threadid == thread_count - 1) {
         end=N;
     } else {
         end = start + base;
     }
+
     double local_sum = 0.0;
 
     for (long i = start; i < end; ++i) {
@@ -47,8 +51,8 @@ void* thrfunc(void* arg) {
         local_sum += (f(x1) + f(x2)) * h / 2.0;
     }
 
-    //kathe thread grafei mono sthn dikh tou thesh ston pinaka local_sums
-    //kai etsi den xreiazetai mutex
+    //each thread writes only to its own position in local_sums.
+    //therefore no mutex is needed here because there is no shared write
     local_sums[threadid] = local_sum;
 
     return NULL;
@@ -63,14 +67,19 @@ int main(int argc, char* argv[]) {
     int thread_count = stoi(argv[2]);
 
     double a = 0.0, b = 10.0;
+    //step size of the trapezoidal rule
     double h = (b - a) / N;
 
+    //array of threads
     pthread_t* threads = new pthread_t[thread_count];
+    //array of parameter structs one per thread
     manyparams* tdata = new manyparams[thread_count];
+    //array storing the local_sum produced by each thread
     double* local_sums = new double[thread_count];
 
     auto start_time = chrono::high_resolution_clock::now();
 
+    //create and launch all threads
     for (int i = 0; i < thread_count; i++) {
         tdata[i].threadid = i;
         tdata[i].thread_count = thread_count;
@@ -82,6 +91,7 @@ int main(int argc, char* argv[]) {
         pthread_create(&threads[i], NULL, thrfunc, &tdata[i]);
     }
 
+    //wait for all threads to finish
     for (int i = 0; i < thread_count; i++) {
         pthread_join(threads[i], NULL);
     }

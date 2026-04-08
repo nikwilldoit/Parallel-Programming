@@ -5,19 +5,20 @@
 
 using namespace std;
 
+//struct holding all parameters each thread needs
 struct manyparams {
-    double a;
+    double a; //start of integration interval
     double h;
     long   N;
 };
 
-int taskid = 0; //epomenh ergasia
-int NTASK = 0;  //plithos ergasiwn
-int K = 1000;   //megethos task
+int taskid = 0; //index of next available task
+int NTASK = 0;  //total number of tasks
+int K = 1000;   //task size
 
-pthread_mutex_t tlock = PTHREAD_MUTEX_INITIALIZER;   //gia taskid
+pthread_mutex_t tlock = PTHREAD_MUTEX_INITIALIZER;   //protects taskid
 
-
+//global shared sum
 double global_sum = 0.0;
 pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -35,16 +36,17 @@ void* thrfunc(void* arg) {
     while (true) {
         int t;
 
-        //pare epomeno task apo oura
+        //next index task from the global queue
         pthread_mutex_lock(&tlock);
         t = taskid++;
         pthread_mutex_unlock(&tlock);
 
-        //denuparxoun alla task
+        //no more tasks left
         if (t >= NTASK) {
             break;
         }
 
+        //map task index t to the corresponding [start, end) range in [0, N)
         long start = (long)t * (long)K;
         long end = start + K;
         if (end > N) end = N;
@@ -57,6 +59,7 @@ void* thrfunc(void* arg) {
             local_sum += (f(x1) + f(x2)) * h / 2.0;
         }
 
+        //add this threads local_sum to the global_sum
         pthread_mutex_lock(&sum_mutex);
         global_sum += local_sum;
         pthread_mutex_unlock(&sum_mutex);
@@ -67,7 +70,7 @@ void* thrfunc(void* arg) {
 
 int main(int argc, char* argv[]) {
     if (argc != 4) {
-        //argv[1] = N argv[2] = thread_count argv[3] = K (megethos task)
+        //argv[1] = N argv[2] = thread_count argv[3] = K (task size)
         cerr << "Usage: " << argv[0] << " N thread_count K\n";
         return 1;
     }
@@ -79,7 +82,7 @@ int main(int argc, char* argv[]) {
     double a = 0.0, b = 10.0;
     double h = (b - a) / N;
 
-    //upologismos plithous task ⌈N/K⌉
+    //total number of tasks ⌈N/K⌉
     NTASK = (int)((N + K - 1) / K);
     taskid = 0;
     global_sum = 0.0;
@@ -92,10 +95,12 @@ int main(int argc, char* argv[]) {
 
     auto start_time = chrono::high_resolution_clock::now();
 
+    //create and launch all threads
     for (int i = 0; i < thread_cnt; ++i) {
         pthread_create(&threads[i], NULL, thrfunc, &params);
     }
 
+    //wait for all threads to finish
     for (int i = 0; i < thread_cnt; ++i) {
         pthread_join(threads[i], NULL);
     }
