@@ -3,74 +3,78 @@
 #include <chrono>
 #include <omp.h>
 
+#define N 100000000
+
 double f(double x) {
-    int iters = (int)(x * 1000) % 1000;
-    double sum = 0;
-    for (int i = 0; i < iters; i++) {
-        sum += sin(x) * cos(x);
-    }
-    return sum;
+    //cast x from double to int
+    if (static_cast<int>(x) % 2 == 0)
+        return std::sin(x) * std::sin(x) * std::sqrt(x + 1.0); //heavier path
+    else
+        return x * x; //lighter path
 }
 
-double integrate_seq(double a, double b, int n) {
+//gets trapezoidal integral of f(x) over [a,b] using n subintervals
+double trapezoid_segment(double a, double b, int n) {
     double h = (b - a) / n;
-    double sum = 0;
-
+    double sum = 0.0;
     for (int i = 0; i < n; i++) {
         double x1 = a + i * h;
         double x2 = a + (i + 1) * h;
         sum += (f(x1) + f(x2)) * h / 2.0;
     }
-
     return sum;
 }
 
-double integrate_task(double a, double b, int depth, int max_depth) {
+void integrate_task(double a, double b, int depth, double &result) {
+    const int max_depth = 4;
+    const int base_n = 10000;
 
-    // cutoff για αποφυγή explosion tasks
-    if (depth >= max_depth || (b - a) < 0.001) {
-        return integrate_seq(a, b, 1000);
+    if (depth >= max_depth) {
+        double local = trapezoid_segment(a, b, base_n);
+        #pragma omp atomic
+        result += local;
+        return;
     }
 
-    double mid = (a + b) / 2.0;
-    double left = 0.0, right = 0.0;
+    double mid = 0.5 * (a + b);
 
-    #pragma omp task shared(left)
-    left = integrate_task(a, mid, depth + 1, max_depth);
+    #pragma omp task firstprivate(a, mid, depth) shared(result)
+    {
+        integrate_task(a, mid, depth + 1, result);
+    }
 
-    #pragma omp task shared(right)
-    right = integrate_task(mid, b, depth + 1, max_depth);
-
-    #pragma omp taskwait
-
-    return left + right;
+    #pragma omp task firstprivate(b, mid, depth) shared(result)
+    {
+        integrate_task(mid, b, depth + 1, result);
+    }
 }
 
-int main() {
-
+int main(int argc, char* argv[]) {
     double a = 0.0;
     double b = 10.0;
 
-    int max_depth = 4;
+    int num_threads = 4; //default number of threads
+    if (argc >= 2) {
+        num_threads = std::stoi(argv[1]);
+    }
 
     double result = 0.0;
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(num_threads)
     {
         #pragma omp single
         {
-            result = integrate_task(a, b, 0, max_depth);
+            integrate_task(a, b, 0, result);
+            #pragma omp taskwait
         }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
 
-    std::cout << "Integral (recursive tasks) = " << result
-              << ", time = "
-              << std::chrono::duration<double>(end - start).count()
-              << " s\n";
+    std::cout << "[TASKS-RECURSIVE] threads = " << num_threads << ", integral(approx) = " << result << ", time = " << elapsed.count() << " s\n";
 
     return 0;
 }

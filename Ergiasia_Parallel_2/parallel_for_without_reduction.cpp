@@ -12,24 +12,27 @@ double f(double x) {
 int main(int argc, char* argv[]) {
     double a = 0.0;
     double b = 10.0;
-    double W = (b - a) / N;   // αντίστοιχο του W στα slides
+    double h = (b - a) / N;
 
     double integral = 0.0;
 
-    int num_threads = 4;      // ή πάρε το από argv / OMP_NUM_THREADS
+    int num_threads = 4;
+
+    if (argc >= 2) {
+        num_threads = std::stoi(argv[1]);
+    }
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // parallel περιοχή όπως στη θεωρία, με mysum + critical
-    #pragma omp parallel num_threads(num_threads) firstprivate(a, W)
+    #pragma omp parallel num_threads(num_threads) firstprivate(a, h)
     {
         double mysum = 0.0;
 
         #pragma omp for
         for (int i = 0; i < N; i++) {
-            double x1 = a + i * W;
-            double x2 = a + (i + 1) * W;
-            mysum += (f(x1) + f(x2)) * W / 2.0;
+            double x1 = a + i * h;
+            double x2 = a + (i + 1) * h;
+            mysum += (f(x1) + f(x2)) * h / 2.0;
         }
 
         #pragma omp critical
