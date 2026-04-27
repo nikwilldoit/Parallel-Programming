@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
 
-    std::cout << "[UNIFORM] Schedule: " << sched_type
+    std::cout << "Schedule: " << sched_type
               << ", chunk = " << chunk
               << ", threads = " << num_threads
               << ", integral = " << integral
