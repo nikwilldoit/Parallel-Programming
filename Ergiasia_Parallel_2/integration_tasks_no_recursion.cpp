@@ -27,8 +27,17 @@ int main(int argc, char* argv[]) {
         num_threads = std::stoi(argv[2]);
     }
 
+    if (num_tasks <= 0 || num_threads <= 0) {
+        std::cerr << "Error: num_tasks and num_threads must be positive integers.\n";
+        return 1;
+    }
+
     double h = (b - a) / N;
     double integral = 0.0;
+
+    int chunk_size = N / num_tasks; //size of each chunk of iterations for a task
+    int threshold = 10000; //threshold for task creation to avoid too many tasks
+
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -40,17 +49,18 @@ int main(int argc, char* argv[]) {
             //create num_tasks tasks each responsible for a chunk of [0,N]
             for (int t = 0; t < num_tasks; t++) {
                 //each task gets its own copy of t and h and shares integral and a
-                #pragma omp task firstprivate(t, h) shared(integral, a)
+                
+                #pragma omp task firstprivate(t) shared(integral,a,h, num_tasks, chunk_size) if(chunk_size > threshold)
                 {
                     //gets the index range [i_start,i_end] for this task
                     int i_start = t * (N / num_tasks);
                     int i_end;
                     if(t == (num_tasks - 1)){
                         //last task takes the rest up to N
-                        i_end=N
+                        i_end=N;
                     }
                     else{
-                        i_end=(t + 1) * (N / num_tasks)
+                        i_end=(t + 1) * (N / num_tasks);
                     }
 
                     //local partial sum for this task
@@ -74,7 +84,7 @@ int main(int argc, char* argv[]) {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
 
-    std::cout << "[TASKS-CHUNKS] tasks = " << num_tasks << ", threads = " << num_threads << ", integral = " << integral << ", time = " << elapsed.count() << " s\n";
+    std::cout << "tasks = " << num_tasks << ", threads = " << num_threads << ", integral = " << integral << ", time = " << elapsed.count() << " s\n";
 
     return 0;
 }
