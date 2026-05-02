@@ -14,16 +14,18 @@ int main(int argc, char* argv[]) {
     double b = 10.0;
     double h = (b - a) / N;
 
-    double integral = 0.0;
+    double integral = 0.0; //final result of the integration
 
-    int num_threads = 4;
+    int num_threads = 4; //default number of threads
 
+    //read number of threads from command line
     if (argc >= 2) {
         num_threads = std::stoi(argv[1]);
     }
 
     auto start = std::chrono::high_resolution_clock::now();
 
+    //reduction(+:integral): safely accumulates results from all threads
     #pragma omp parallel for firstprivate(h, a) reduction(+:integral) num_threads(num_threads)
     for (int i = 0; i < N; i++) {
         double x1 = a + i * h;
