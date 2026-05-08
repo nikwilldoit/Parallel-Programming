@@ -3,4 +3,6 @@ This repository contains a collection of exercises from the Parallel Programming
 
 1st Exercise DONE
 
-Working on the 2nd one
+2nd Exercise DONE
+
+Working on the 3rd one
