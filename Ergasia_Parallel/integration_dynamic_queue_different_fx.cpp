@@ -22,11 +22,10 @@ double global_sum = 0.0;
 pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 double f(double x) {
-    double x2 = x * x * x + sqrt(x + 1.0);
-    for (int i = 0; i < 15; ++i) {
-        x2 += 0.000001 * x * x;
-    }
-    return x2;
+    if (static_cast<int>(x) % 2 == 0)
+        return std::sin(x) * std::sin(x) * std::sqrt(x + 1.0);
+    else
+        return x * x;
 }
 
 void* thrfunc(void* arg) {

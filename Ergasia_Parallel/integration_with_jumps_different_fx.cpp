@@ -19,15 +19,10 @@ double global_sum = 0.0;
 pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 double f(double x) {
-    if (x <= 5.0) {
+    if (static_cast<int>(x) % 2 == 0)
+        return std::sin(x) * std::sin(x) * std::sqrt(x + 1.0);
+    else
         return x * x;
-    } else {
-        double x2 = x * x;
-        for (int i = 0; i < 50; i++) {
-            x2 += 0.000001 * x; //heavier work for x > 5
-        }
-        return x2;
-    }
 }
 
 void* threadfunc(void* arg) {
