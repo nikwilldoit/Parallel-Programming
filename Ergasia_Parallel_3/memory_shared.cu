@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <chrono>
 
-#define N 1000000
+#define N 100000000
 
 __device__ double f(double x) {
     return x * x;
@@ -22,7 +22,7 @@ __global__ void kernel_shared(double a, double h, double *partial) {
         double x1 = a + i * h;
         double x2 = a + (i + 1) * h;
 
-        value = (f(x1) + f(x2)) * h * 0.5;
+        value = (f(x1) + f(x2)) * h / 2.0;
     }
 
     cache[tid] = value;
