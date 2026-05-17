@@ -45,14 +45,17 @@ int main() {
         trapezoid_kernel<<<blocks, threads>>>(a, h, d_partial);
         cudaDeviceSynchronize();
 
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double> elapsed = end - start;
+
         cudaMemcpy(h_partial, d_partial, size, cudaMemcpyDeviceToHost);
 
         double sum = 0.0;
         for (int i = 0; i < N; i++)
             sum += h_partial[i];
 
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
+        
 
         std::cout << "Block size: " << bs
                   << " | Time: " << elapsed.count()

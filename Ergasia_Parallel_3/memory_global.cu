@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <chrono>
 
-#define N 100000000
+#define N 1000000
 
 __device__ double f(double x) {
     return x * x;
@@ -40,13 +40,13 @@ int main() {
     kernel_global<<<blocks, threads>>>(a, h, d_partial);
     cudaDeviceSynchronize();
 
+    auto end = std::chrono::high_resolution_clock::now();
+
     cudaMemcpy(h_partial, d_partial, size, cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
     for (int i = 0; i < N; i++)
         sum += h_partial[i];
-
-    auto end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Result: " << sum << std::endl;
     std::cout << "Time: "

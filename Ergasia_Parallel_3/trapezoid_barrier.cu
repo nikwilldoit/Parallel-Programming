@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <chrono>
 
-#define N 100000000
+#define N 1000000
 
 __device__ double f(double x) {
     return x * x;
@@ -68,18 +68,16 @@ int main() {
     trapezoid_barrier<<<blocks, threads>>>(a, h, d_partial);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(h_partial, d_partial,
-               blocks * sizeof(double),
-               cudaMemcpyDeviceToHost);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> elapsed = end - start;
+
+    cudaMemcpy(h_partial, d_partial, blocks * sizeof(double), cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
     for (int i = 0; i < blocks; i++) {
         sum += h_partial[i];
     }
-
-    auto end = std::chrono::high_resolution_clock::now();
-
-    std::chrono::duration<double> elapsed = end - start;
 
     std::cout << "Result: " << sum << std::endl;
     std::cout << "Time: " << elapsed.count() << " sec\n";
