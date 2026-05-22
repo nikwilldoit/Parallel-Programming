@@ -8,6 +8,7 @@ __device__ double f(double x) {
     return x * x;
 }
 
+//1 thread = 1 trapezoid, using local variables
 __global__ void kernel_register(double a, double h, int n, double *partial) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -15,10 +16,12 @@ __global__ void kernel_register(double a, double h, int n, double *partial) {
         double x1 = a + i * h;
         double x2 = a + (i + 1) * h;
         double value = (f(x1) + f(x2)) * h / 2.0;
+        //final per-thread result stored in global memory
         partial[i] = value;
     }
 }
 
+//shared-memory reduction kernel
 __global__ void reduce_sum(double *input, double *output, int n) {
     __shared__ double cache[256];
 
@@ -64,11 +67,11 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // 1ος kernel: κάθε thread υπολογίζει 1 trapezoid
+    //each thread computes 1 trapezoid using registers for temporaries
     kernel_register<<<blocks, threads>>>(a, h, n, d_partial);
     cudaDeviceSynchronize();
 
-    // επαναληπτικό reduction στη GPU
+    //iterative reduction on the GPU
     int current_n = n;
     double *d_in = d_partial;
     double *d_out = d_reduce;

@@ -8,7 +8,7 @@ __device__ double f(double x) {
     return x * x;
 }
 
-// 1 thread = 1 trapezoid, block-level reduction σε shared
+// 1 thread = 1 trapezoid, block-level reduction in shared memory
 __global__ void kernel_shared(double a, double h, int n, double *partial) {
 
     __shared__ double cache[256];
@@ -24,10 +24,12 @@ __global__ void kernel_shared(double a, double h, int n, double *partial) {
         value = (f(x1) + f(x2)) * h / 2.0;
     }
 
+    //write per-thread contribution to shared memory
     cache[tid] = value;
 
     __syncthreads();
 
+    //block-level reduction in shared memory
     int step = blockDim.x / 2;
     while (step > 0) {
         if (tid < step) {
@@ -37,12 +39,13 @@ __global__ void kernel_shared(double a, double h, int n, double *partial) {
         step /= 2;
     }
 
+    //one partial sum per block written to global memory
     if (tid == 0) {
         partial[blockIdx.x] = cache[0];
     }
 }
 
-// 2ος kernel: reduction στα block partial sums (πάλι με shared)
+//reduction over block-level partial sums
 __global__ void final_reduce(double *input, double *output, int n) {
 
     __shared__ double cache[256];
@@ -81,8 +84,8 @@ int main() {
     int threads = 256;
     int blocks  = (n + threads - 1) / threads;
 
-    double *d_partial;   // block-level sums από kernel_shared
-    double *d_reduce;    // προσωρινά για final_reduce
+    double *d_partial;   //one partial sum per block 
+    double *d_reduce;    //temporary buffer for final reduction
     double result = 0.0;
 
     cudaMalloc(&d_partial, blocks * sizeof(double));
@@ -90,11 +93,11 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // 1ος kernel: trapezoids + block-level reduction σε shared
+    //compute trapezoids + block-level reduction in shared memory
     kernel_shared<<<blocks, threads>>>(a, h, n, d_partial);
     cudaDeviceSynchronize();
 
-    // 2ος kernel: reduction των block sums μέχρι να μείνει 1 τιμή
+    //reduce block sums until a single value remains
     int current_n = blocks;
     double *d_in  = d_partial;
     double *d_out = d_reduce;

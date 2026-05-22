@@ -9,8 +9,10 @@ __device__ double f(double x) {
 }
 
 __global__ void kernel_global(double a, double h, int n, double *partial) {
+    //global index of the thread in a 1D grid
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
+    //each thread computes one trapezoid
     if (i < n) {
         double x1 = a + i * h;
         double x2 = a + (i + 1) * h;
@@ -18,6 +20,7 @@ __global__ void kernel_global(double a, double h, int n, double *partial) {
     }
 }
 
+//block-level reduction using shared memory
 __global__ void reduce_sum(double *input, double *output, int n) {
     __shared__ double cache[256];
 
@@ -25,13 +28,16 @@ __global__ void reduce_sum(double *input, double *output, int n) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     double val = 0.0;
+    // load element from global memory if in range
     if (i < n) {
         val = input[i];
     }
 
+    //store to shared memory
     cache[tid] = val;
     __syncthreads();
 
+    //parallel reduction in shared memory
     int step = blockDim.x / 2;
     while (step > 0) {
         if (tid < step) {
@@ -41,6 +47,7 @@ __global__ void reduce_sum(double *input, double *output, int n) {
         step /= 2;
     }
 
+    //thread 0 writes blocks partial sum to global memory
     if (tid == 0) {
         output[blockIdx.x] = cache[0];
     }
@@ -63,11 +70,11 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // 1ος kernel: κάθε thread γράφει το αποτέλεσμα στη global memory
+    //each thread computes one trapezoid and stores it in global memory
     kernel_global<<<blocks, threads>>>(a, h, n, d_partial);
     cudaDeviceSynchronize();
 
-    // reduction στη GPU
+    //iterative reduction on the GPU until only one value remains
     int current_n = n;
     double *d_in = d_partial;
     double *d_out = d_reduce;
@@ -80,6 +87,7 @@ int main() {
 
         current_n = reduce_blocks;
 
+        //swap input/output buffers for the next reduction stage
         double *temp = d_in;
         d_in = d_out;
         d_out = temp;
@@ -87,6 +95,7 @@ int main() {
 
     auto end = std::chrono::high_resolution_clock::now();
 
+    //copy final result back to host
     cudaMemcpy(&result, d_in, sizeof(double), cudaMemcpyDeviceToHost);
 
     std::cout << "Result: " << result << std::endl;
