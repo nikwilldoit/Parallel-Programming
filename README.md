@@ -5,4 +5,4 @@ This repository contains a collection of exercises from the Parallel Programming
 
 2nd Exercise DONE
 
-Working on the 3rd one
+3rd Exercise DONE
