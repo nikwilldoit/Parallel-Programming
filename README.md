@@ -1,6 +1,6 @@
 # Parallel Programming Course
 
-This repository contains the projects from the Parallel Programming course taught by Andreas Vasilakis.
+This repository contains the projects from the Parallel Programming course taught by <b>Andreas Vasilakis</b>.
 
 ## Course Overview
 
