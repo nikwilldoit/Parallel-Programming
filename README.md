@@ -42,13 +42,13 @@ Manual multithreaded implementations focusing on synchronization and workload ba
 - Alternative work distribution strategies
 - Analytic results are included in the pdf report
 
-### Toolchain
+## Toolchain
 
-## CUDA
+### CUDA
 
 - NVIDIA CUDA Toolkit (11+)
 
-## CPU
+### CPU
 
 - GCC (9+)
 - OpenMP
