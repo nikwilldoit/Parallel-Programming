@@ -2,7 +2,7 @@
 
 This repository contains the projects from the Parallel Programming course taught by [**Andreas Vasilakis**](https://www.aueb.gr/en/faculty_page/vasilakis-andreas-alexandros).
 
-## Exercises on Topics:
+### Exercises on Topics:
 
 ## CUDA
 
