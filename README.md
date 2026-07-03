@@ -2,7 +2,7 @@
 
 This repository contains the projects from the Parallel Programming course taught by [**Andreas Vasilakis**](https://www.aueb.gr/en/faculty_page/vasilakis-andreas-alexandros).
 
-## Exercises on Topics:
+# Exercises on Topics:
 
 ### CUDA
 
@@ -42,7 +42,7 @@ Manual multithreaded implementations focusing on synchronization and workload ba
 - Alternative work distribution strategies
 - Analytic results are included in the pdf report
 
-## Toolchain
+# Toolchain
 
 ### CUDA
 
