@@ -5,9 +5,9 @@ This repository contains the projects from the Parallel Programming course taugh
 ## Exercises on Topics:
 
 ### CUDA
-[here](https://github.com/nikwilldoit/Parallel-Programming/tree/main/Ergasia_Parallel_3)
 
 Experiments include:
+[here](https://github.com/nikwilldoit/Parallel-Programming/tree/main/Ergasia_Parallel_3)
 
 - Barrier synchronization
 - Thread-per-block configuration
@@ -31,9 +31,9 @@ Numerical integration implementations using OpenMP with different parallelizatio
 ---
 
 ### POSIX Threads (pthreads)
-[here](https://github.com/nikwilldoit/Parallel-Programming/tree/main/Ergasia_Parallel)
 
 Manual multithreaded implementations focusing on synchronization and workload balancing:
+[here](https://github.com/nikwilldoit/Parallel-Programming/tree/main/Ergasia_Parallel)
 
 - Thread creation and synchronization
 - Mutex-based locking
