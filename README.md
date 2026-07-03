@@ -2,9 +2,9 @@
 
 This repository contains the projects from the Parallel Programming course taught by [**Andreas Vasilakis**](https://www.aueb.gr/en/faculty_page/vasilakis-andreas-alexandros).
 
-### Exercises on Topics:
+## Exercises on Topics:
 
-## CUDA
+### CUDA
 
 Experiments include:
 
@@ -16,7 +16,7 @@ Experiments include:
 
 ---
 
-## OpenMP
+### OpenMP
 
 Numerical integration implementations using OpenMP with different parallelization techniques:
 
@@ -28,7 +28,7 @@ Numerical integration implementations using OpenMP with different parallelizatio
 
 ---
 
-## POSIX Threads (pthreads)
+### POSIX Threads (pthreads)
 
 Manual multithreaded implementations focusing on synchronization and workload balancing:
 
